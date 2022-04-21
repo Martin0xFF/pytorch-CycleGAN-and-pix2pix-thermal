@@ -3,7 +3,48 @@
 
 <br><br><br>
 
-# CycleGAN and pix2pix in PyTorch
+# Application of CycleGAN and Pix2Pix for thermal image upsampling
+
+## Premise
+
+Thermal imaging technology is relatively low resolution even for self driving purposes (compared to 4k monocular cameras). Further such higher resolution thermal imaging sensors are very expensive making them less accessible. The goal here is to explore the use of Generative Models within the image translation task of increasing the resolution of input thermal images (from cheaper thermal cameras) to match the resolution of more expensive cameras. The intution here is that the generative models will be able to conduct denoising and provide priors over the thermal images for given driving scenes. These learned priors would take the original input image and resconstruct pedestrian, cars or cyclists from the lower resolution information. For this task, images of dim (120, 160) will be upsampled to a dimension of (512, 640). Note: (H, W) denotes Height by Width.
+
+## Training
+To train the UnetAttention based pix2pix model utilize the following command:
+
+```zsh
+python train.py --dataroot ${DATA} --name therm_p2p_atten_unet128 --model pix2pix --netG unet_128_atten --input_nc 1 --output_nc 1 --epoch_count 0 --preprocess none --batch_size 2
+4 --gan_mode lsgan
+```
+
+Where the environment variable DATA is set to the path of the aligned dataset of resized thermal images (120,160) -> (512, 640) concatenated to the ground truth thermal images (resulting dimsion is (512, 1280)).
+
+An aligned dataset can be generated using the provided conversion script:
+```zsh
+python make_dataset_aligned.py --dataset-path $SETS 
+```
+Ensure the SETS environment variable points to the location of the thermal image data with pairs of A (target) and B (input) for each group of image types (train, test, val). Example structure seen below
+
+```
+root/
+├─ trainA/
+├─ testA/
+├─ valA/
+├─ trainB/
+├─ testB/
+├─ valB/
+```
+## Evaluation
+
+The code can be evaluated via the following command:
+```
+python test.py --dataroot ${SETS}/testB --name therm_p2p_atten_unet128 --model test --norm batch --netG unet_128_atten --input_nc 1 --output_nc 1 --epoch 80 --preprocess none
+```
+This will generate an upsampled image for every image from the B Target set within a folder called results in the root directory.
+
+---
+
+# CycleGAN and pix2pix in PyTorch (Original README)
 
 **New**:  Please check out [contrastive-unpaired-translation](https://github.com/taesungp/contrastive-unpaired-translation) (CUT), our new unpaired image-to-image translation model that enables fast and memory-efficient training.
 
