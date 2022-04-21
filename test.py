@@ -1,4 +1,9 @@
-"""General-purpose test script for image-to-image translation.
+"""
+Modified by Martin F.
+on 2022, 04, 20
+- Save each image from set instead of every 5th
+
+General-purpose test script for image-to-image translation.
 
 Once you have trained your model with train.py, you can use this script to test the model.
 It will load a saved model from '--checkpoints_dir' and save the results to '--results_dir'.
@@ -32,6 +37,7 @@ from data import create_dataset
 from models import create_model
 from util.visualizer import save_images
 from util import html
+from tqdm import tqdm
 
 try:
     import wandb
@@ -67,14 +73,14 @@ if __name__ == '__main__':
     # For [CycleGAN]: It should not affect CycleGAN as CycleGAN uses instancenorm without dropout.
     if opt.eval:
         model.eval()
-    for i, data in enumerate(dataset):
-        if i >= opt.num_test:  # only apply our model to opt.num_test images.
-            break
+    for i, data in tqdm(enumerate(dataset)):
+        #if i >= opt.num_test:  # only apply our model to opt.num_test images.
+        #    break
         model.set_input(data)  # unpack data from data loader
         model.test()           # run inference
         visuals = model.get_current_visuals()  # get image results
         img_path = model.get_image_paths()     # get image paths
-        if i % 5 == 0:  # save images to an HTML file
+        if i % 1 == 0:  # save images to an HTML file
             print('processing (%04d)-th image... %s' % (i, img_path))
         save_images(webpage, visuals, img_path, aspect_ratio=opt.aspect_ratio, width=opt.display_winsize, use_wandb=opt.use_wandb)
     webpage.save()  # save the HTML
